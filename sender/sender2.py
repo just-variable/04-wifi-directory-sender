@@ -1,10 +1,9 @@
-import socket               # Import socket module
+import socket
 import os
-import tqdm
 import json
 
-s = socket.socket()         # Create a socket object
-port = 5000                # Reserve a port for your service.
+s = socket.socket()
+port = 5000
 
 s.connect(("localhost", port))
 print("Connected.")
@@ -33,6 +32,6 @@ if recv == "fileDictTransfer":
         s.send(b"<END>")
         while (s.recv(1024).decode() != "fileTransfer"):
             print("Waiting for receiver...")
-        print(file + " delivered.")
+        print("delivered: " + file)
 
 s.close()

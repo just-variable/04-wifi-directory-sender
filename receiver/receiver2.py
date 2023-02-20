@@ -16,7 +16,6 @@ done = False
 fileDictBytes = ""
 while not done:
     data = client.recv(1024).decode()
-    print("received: " + data)
     if("<END>" in data):
         print("transfer done.\n")
         done = True
