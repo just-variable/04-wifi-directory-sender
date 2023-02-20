@@ -18,7 +18,7 @@ while not done:
     data = client.recv(1024).decode()
     print("received: " + data)
     if("<END>" in data):
-        print("transfer done.")
+        print("transfer done.\n")
         done = True
         fileDictBytes += data[:-5]
     else:
@@ -37,17 +37,17 @@ for file in fileDict.keys():
         data_buffer = client.recv(1024)
         progress.update(1024)
         if(b"<END>" in data_buffer):
-            print("encountered <END>")
-            fileBytes += data_buffer[:-5]
+            fileBytes += data_buffer
             client.send("fileTransfer".encode())
             done = True
         else:
             fileBytes += data_buffer
+    fileBytes = fileBytes.replace(b"<END>", b"")
     file2 = open(file, "wb")
     file2.write(fileBytes)
     file2.close()
         
-print("done, closing connection")
+print("Closing connection.")
 client.close()
 
 # while True:

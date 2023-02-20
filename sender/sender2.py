@@ -10,6 +10,7 @@ s.connect(("localhost", port))
 print("Connected.")
 
 filesList = os.listdir("./")
+filesList.remove("sender2.py")
 
 fileDict = {}
 for file in filesList:
@@ -33,7 +34,5 @@ if recv == "fileDictTransfer":
         while (s.recv(1024).decode() != "fileTransfer"):
             print("Waiting for receiver...")
         print(file + " delivered.")
-    
-print(str(recv))
 
 s.close()
