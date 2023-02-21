@@ -27,7 +27,8 @@ while not done:
         fileDictBytes += data
 
 client.send(b"fileDictTransfer")
-fileDict = json.loads(fileDictBytes)
+fileDict = eval(fileDictBytes)
+# print(str(fileDict))
 
 for file in fileDict.keys():
     print("\nReceiving: " + file)
