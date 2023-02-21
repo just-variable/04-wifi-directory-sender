@@ -3,13 +3,9 @@ import os
 import json
 import hashlib
 
-class item:
-    def __init__(self, name, size, digest, relPath, dirlist):
-        self.name = name
-        self.size = size
-        self.digest = digest
-        self.relPath = relPath
-        self.dirlist = dirlist
+
+# 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
+
 
 def readDir(relPath, isSub = 0):
     if(not isSub):
@@ -20,7 +16,7 @@ def readDir(relPath, isSub = 0):
     filesList = os.scandir(relPath)
     for fileObj in filesList:
         file = fileObj.name
-        if (file == os.path.basename(__file__)):
+        if (file == os.path.basename(__file__) or file == "functions.py"):
             continue
         if (fileObj.is_file()):
             print("read file: " + file)
@@ -33,13 +29,28 @@ def readDir(relPath, isSub = 0):
         else:
             fileDict = readDir(relPath + file + "/", True)
             fileDigest = ""
-        thisFile = item(file, os.stat(relPath + file).st_size, fileDigest, relPath + file + "/", fileDict)
+        thisFile = [file, os.stat(relPath + file).st_size, fileDigest, relPath, fileDict]
         
         if (fileObj.is_file()):
-            dirDict[thisFile.name] = thisFile
+            dirDict[thisFile[0]] = thisFile
         else:
-            dirDict[thisFile.name] = fileDict #Change later from thisFile.name => thisFile
+            dirDict[thisFile[0]] = fileDict #Change later from thisFile.name => thisFile
     return dirDict
+
+def sendDir(dirDict):
+
+        for file in dirDict.keys():
+            if (isinstance(dirDict[file], list)):
+                filee = open(dirDict[file][3] + file, "rb")
+                print("Sending: " + file)
+                s.sendall(filee.read())
+                print("Sent: " + file)
+                s.send(b"<END>")
+                while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + file)):
+                    print("Waiting for receiver...")
+                print("fileTransfer:" + file)
+            else:
+                sendDir(dirDict[file])
 
 print("Reading files and subdirectories...")
 completeFiles = readDir("./")
@@ -52,23 +63,22 @@ BUFFER_SIZE = 4096
 s.connect(("localhost", port))
 print("Connected.")
 
-completeFilesBytes = str(completeFiles).encode()
+completeFilesBytes = json.dumps(completeFiles)
+completeFiles = json.loads(completeFilesBytes)
 
 
-s.send(completeFilesBytes)
+s.send(completeFilesBytes.encode())
 s.send(b"<END>")
 
 recv = s.recv(BUFFER_SIZE).decode()
-if recv == "fileDictTransfer":
+print("Waiting for dirDictTransfer message...")
+
+if recv == "dirDictTransfer":
     print("File data delivered.\nStarting to send...\n")
     
-    for file in completeFiles.keys():
-        if (type(completeFiles[file]) != dict):
-            filee = open(completeFiles[file].relPath, "rb")
-            s.sendall(filee.read())
-            s.send(b"<END>")
+    sendDir(completeFiles)
         
-    
+print("Done. Closing...")
     
     # for file in completeFiles.keys():
     #     print("sending: " + file)
@@ -80,4 +90,4 @@ if recv == "fileDictTransfer":
     #     print("delivered: " + file)
 
 s.close()
-input("Hit enter")
+print("Closed.")
