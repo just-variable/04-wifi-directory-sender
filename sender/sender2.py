@@ -14,25 +14,25 @@ ethernet = ifcfgDict["Ethernet adapter Ethernet 3"]["inet"]
 print("Ethernet IP: " + ethernet)
 print("LAN IP: " + wifi)
 
-choice = ""
-while True:
-    if(choice.lower() == "e"):
-        choice = ethernet
-        break
-    elif(choice.lower() == "w"):
-        choice = wifi
-        break
-    else:
-        choice = input("Use Ethernet or LAN? (E/L): ")
+# choice = ""
+# while True:
+#     if(choice.lower() == "e"):
+#         choice = ethernet
+#         break
+#     elif(choice.lower() == "w"):
+#         choice = wifi
+#         break
+#     else:
+#         choice = input("Use Ethernet or LAN? (E/L): ")
         
-while True:
-    try:
-        port = int(input("Enter port to use (4 digits): "))
-    except:
-        continue
-    if(port > 9999 or port < 1025):
-        continue
-    break
+# while True:
+#     try:
+#         port = int(input("Enter port to use (4 digits): "))
+#     except:
+#         continue
+#     if(port > 9999 or port < 1025):
+#         continue
+#     break
 
 
 
@@ -85,10 +85,10 @@ def sendDir(dirDict):
 print("Reading files and subdirectories...")
 completeFiles = readDir("./")
 
-print("Waiting for receiver on: " + choice + ":" + str(port) + "...")
+# print("Waiting for receiver on: " + choice + ":" + str(port) + "...")
 while True:
     try:
-        s.connect((choice, port))
+        s.connect(("0.0.0.0", 5000))
         break
     except:
         None
