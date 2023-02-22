@@ -1,8 +1,8 @@
 import json
 import os
-import hashlib
+import math
 import socket
-import ifcfg
+from rich.progress import Progress
 
 BUFFER_SIZE = 1024*1024
 
@@ -16,19 +16,15 @@ BUFFER_SIZE = 1024*1024
 
 
 s = socket.socket()
-
-totalFilesNb = 0
-
+totalFilesSize = {'value': 0}
 def readDir(relPath):
     dirDict = {}
     filesList = os.scandir(relPath)
-    totalFilesNb = 0
     for fileObj in filesList:
         file = fileObj.name
         if (file == os.path.basename(__file__) or file == "functions.py" or file == "sender2.py"):
             continue
         if (fileObj.is_file()):
-            totalFilesNb += 1
             fileDict = 0
             # sha256_hash = hashlib.sha256()
             # with open(str(relPath + file),"rb") as f:
@@ -39,7 +35,9 @@ def readDir(relPath):
         else:
             fileDict = readDir(relPath + file + "/")
             fileDigest = ""
-        thisFile = [file, os.stat(relPath + file).st_size, fileDigest, relPath, fileDict]
+        size = os.stat(relPath + file).st_size
+        totalFilesSize['value'] += size
+        thisFile = [file, size, fileDigest, relPath, fileDict]
         
         if (fileObj.is_file()):
             dirDict[thisFile[0]] = thisFile
@@ -48,27 +46,34 @@ def readDir(relPath):
 
     return dirDict
 
-def sendDir(dirDict):
+def sendDir(dirDict, progress):
     for file in dirDict.keys():
         if (isinstance(dirDict[file], list)):
             filee = open(dirDict[file][3] + file, "rb")
-            print("Sending: " + file)
+            nameWithSpaces = ""
+            if(len(file) > 33):
+                nameWithSpaces = file[:30] + "..."
+            else:
+                nameWithSpaces = file
+            nameWithSpaces = nameWithSpaces + " "*(36-len(nameWithSpaces))
             s.sendall(filee.read())
             s.send(b"<END>")
+            progress.update(task1, description=("[red]"+nameWithSpaces), advance=dirDict[file][1])
             while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + file)):
-                print("Waiting for receiver...")
+                print("[+] Waiting for receiver...")
         else:
-            sendDir(dirDict[file])
+            sendDir(dirDict[file], progress)
 
 # 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
 
-print("Reading files and subdirectories...")
+print("[+] Reading files and subdirectories...")
 completeFiles = readDir("./")
 
-# print("Waiting for receiver on: " + choice + ":" + str(port) + "...")
-receiverIP = input("Enter IP of receiver: ")
+receiverIP = input("[-] Enter IP of receiver or leave blank for localhost: ")
+if (receiverIP == ""):
+    receiverIP = "localhost"
 s.connect((receiverIP, 5000))
-print("Connected.")
+print("[+] Connected.")
 
 completeFilesBytes = json.dumps(completeFiles)
 completeFiles = json.loads(completeFilesBytes)
@@ -78,10 +83,13 @@ s.send(b"<END>")
 
 recv = s.recv(BUFFER_SIZE).decode()
 if recv == "dirDictTransfer":
-    print("Directory data received by peer. Starting to send...")
-    sendDir(completeFiles)
+    print("[+] Directory data received by peer. Starting to send...\n")
+    with Progress() as progress:
+        task1 = progress.add_task("[red]", total=totalFilesSize['value'])
+        sendDir(completeFiles, progress)
+    
         
-print("Done, closing connection...")
+print("\n[+] Done, closing connection...")
 s.close()
-print("Connection closed.")
-input("press enter...")
+print("[+] Connection closed.")
+input("[-] press enter...")
