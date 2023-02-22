@@ -36,17 +36,7 @@ def getDir(dirDict):
             
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
-# while True:
-#     
-#     try:
-#         
-#     except:
-#         continue
-#     break
-
-senderIP = input("Enter IP Address of sender: ")
-# senderIP = "192.168.1.104"
-s.bind(("", 5000))
+s.bind(("localhost", 5000))
 
 while True:
     try:

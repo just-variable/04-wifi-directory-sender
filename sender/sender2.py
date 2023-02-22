@@ -86,9 +86,10 @@ print("Reading files and subdirectories...")
 completeFiles = readDir("./")
 
 # print("Waiting for receiver on: " + choice + ":" + str(port) + "...")
+receiverIP = input("Enter IP of receiver: ")
 while True:
     try:
-        s.connect(("0.0.0.0", 5000))
+        s.connect((receiverIP, 5000))
         break
     except:
         None
