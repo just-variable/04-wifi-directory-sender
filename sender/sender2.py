@@ -8,10 +8,10 @@ import hashlib
 
 
 def readDir(relPath, isSub = 0):
-    if(not isSub):
-        print("reading directory: " + relPath)
-    else:
-        print("reading subdirectory: " + relPath)
+    # if(not isSub):
+    #     print("reading directory: " + relPath)
+    # else:
+    #     print("reading subdirectory: " + relPath)
     dirDict = {}
     filesList = os.scandir(relPath)
     for fileObj in filesList:
@@ -19,7 +19,6 @@ def readDir(relPath, isSub = 0):
         if (file == os.path.basename(__file__) or file == "functions.py"):
             continue
         if (fileObj.is_file()):
-            print("read file: " + file)
             fileDict = 0
             sha256_hash = hashlib.sha256()
             with open(str(relPath + file),"rb") as f:
@@ -44,23 +43,28 @@ def sendDir(dirDict):
                 filee = open(dirDict[file][3] + file, "rb")
                 print("Sending: " + file)
                 s.sendall(filee.read())
-                print("Sent: " + file)
                 s.send(b"<END>")
                 while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + file)):
                     print("Waiting for receiver...")
-                print("fileTransfer:" + file)
             else:
                 sendDir(dirDict[file])
 
 print("Reading files and subdirectories...")
 completeFiles = readDir("./")
-print(str(completeFiles))
+# print(str(completeFiles))
 
 s = socket.socket()
 port = 5000
 BUFFER_SIZE = 4096
 
-s.connect(("localhost", port))
+print("Waiting for receiver...")
+while True:
+    try:
+        s.connect(("localhost", port))
+        break
+    except:
+        None
+        
 print("Connected.")
 
 completeFilesBytes = json.dumps(completeFiles)
@@ -71,23 +75,13 @@ s.send(completeFilesBytes.encode())
 s.send(b"<END>")
 
 recv = s.recv(BUFFER_SIZE).decode()
-print("Waiting for dirDictTransfer message...")
 
 if recv == "dirDictTransfer":
-    print("File data delivered.\nStarting to send...\n")
+    print("Directory data received by peer. Starting to send...")
     
     sendDir(completeFiles)
         
-print("Done. Closing...")
-    
-    # for file in completeFiles.keys():
-    #     print("sending: " + file)
-    #     filee = open(file, "rb")
-    #     s.sendall(filee.read())
-    #     s.send(b"<END>")
-    #     while (s.recv(BUFFER_SIZE).decode() != "fileTransfer"):
-    #         print("Waiting for receiver...")
-    #     print("delivered: " + file)
-
+print("Done, closing connection...")
 s.close()
-print("Closed.")
+print("Connection closed.")
+input("press enter...")
