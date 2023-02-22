@@ -6,34 +6,13 @@ import ifcfg
 
 BUFFER_SIZE = 4096
 
-print("Getting IP Addresses...")
-ifcfgDict = ifcfg.interfaces()
+# print("Getting IP Addresses...")
+# ifcfgDict = ifcfg.interfaces()
 
-wifi = ifcfgDict["Wireless LAN adapter Wi-Fi"]["inet"]
-ethernet = ifcfgDict["Ethernet adapter Ethernet 3"]["inet"]
-print("Ethernet IP: " + ethernet)
-print("LAN IP: " + wifi)
-
-# choice = ""
-# while True:
-#     if(choice.lower() == "e"):
-#         choice = ethernet
-#         break
-#     elif(choice.lower() == "w"):
-#         choice = wifi
-#         break
-#     else:
-#         choice = input("Use Ethernet or LAN? (E/L): ")
-        
-# while True:
-#     try:
-#         port = int(input("Enter port to use (4 digits): "))
-#     except:
-#         continue
-#     if(port > 9999 or port < 1025):
-#         continue
-#     break
-
+# wifi = ifcfgDict["Wireless LAN adapter Wi-Fi"]["inet"]
+# ethernet = ifcfgDict["Ethernet adapter Ethernet 3"]["inet"]
+# print("Ethernet IP: " + ethernet)
+# print("LAN IP: " + wifi)
 
 
 s = socket.socket()
@@ -87,12 +66,7 @@ completeFiles = readDir("./")
 
 # print("Waiting for receiver on: " + choice + ":" + str(port) + "...")
 receiverIP = input("Enter IP of receiver: ")
-while True:
-    try:
-        s.connect((receiverIP, 5000))
-        break
-    except:
-        None
+s.connect((receiverIP, 5000))
 print("Connected.")
 
 completeFilesBytes = json.dumps(completeFiles)
