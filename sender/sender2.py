@@ -3,7 +3,7 @@ import os
 import math
 import socket
 from rich.progress import Progress
-
+# 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
 BUFFER_SIZE = 1024*1024
 
 # print("Getting IP Addresses...")
@@ -56,15 +56,21 @@ def sendDir(dirDict, progress):
             else:
                 nameWithSpaces = file
             nameWithSpaces = nameWithSpaces + " "*(36-len(nameWithSpaces))
-            s.sendall(filee.read())
+            if(dirDict[file][1]>52428800):
+                while True:
+                    data = filee.read(52428800)
+                    s.send(data)
+                    progress.update(task1, advance=52428800)
+                    if not data:
+                        break
+            else:
+                s.sendall(filee.read())
+                progress.update(task1, description=("[red]"+nameWithSpaces), advance=dirDict[file][1])
             s.send(b"<END>")
-            progress.update(task1, description=("[red]"+nameWithSpaces), advance=dirDict[file][1])
             while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + file)):
                 print("[+] Waiting for receiver...")
         else:
             sendDir(dirDict[file], progress)
-
-# 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
 
 print("[+] Reading files and subdirectories...")
 completeFiles = readDir("./")
