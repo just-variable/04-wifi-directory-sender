@@ -3,7 +3,7 @@ import json
 import os
 import tqdm
 
-BUFFER_SIZE = 4096
+BUFFER_SIZE = 128*1024
 
 def getDir(dirDict):
     

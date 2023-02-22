@@ -4,7 +4,7 @@ import hashlib
 import socket
 import ifcfg
 
-BUFFER_SIZE = 4096
+BUFFER_SIZE = 128*1024
 
 # print("Getting IP Addresses...")
 # ifcfgDict = ifcfg.interfaces()
