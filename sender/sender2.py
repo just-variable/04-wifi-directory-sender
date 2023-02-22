@@ -6,15 +6,6 @@ from rich.progress import Progress
 # 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
 BUFFER_SIZE = 1024*1024
 
-# print("Getting IP Addresses...")
-# ifcfgDict = ifcfg.interfaces()
-
-# wifi = ifcfgDict["Wireless LAN adapter Wi-Fi"]["inet"]
-# ethernet = ifcfgDict["Ethernet adapter Ethernet 3"]["inet"]
-# print("Ethernet IP: " + ethernet)
-# print("LAN IP: " + wifi)
-
-
 s = socket.socket()
 totalFilesSize = {'value': 0}
 def readDir(relPath):
