@@ -30,11 +30,12 @@ def readDir(relPath):
         if (fileObj.is_file()):
             totalFilesNb += 1
             fileDict = 0
-            sha256_hash = hashlib.sha256()
-            with open(str(relPath + file),"rb") as f:
-                for byte_block in iter(lambda: f.read(4096),b""):
-                    sha256_hash.update(byte_block)
-            fileDigest = sha256_hash.hexdigest()
+            # sha256_hash = hashlib.sha256()
+            # with open(str(relPath + file),"rb") as f:
+            #     for byte_block in iter(lambda: f.read(4096),b""):
+            #         sha256_hash.update(byte_block)
+            # fileDigest = sha256_hash.hexdigest()
+            fileDigest = ""
         else:
             fileDict = readDir(relPath + file + "/")
             fileDigest = ""
