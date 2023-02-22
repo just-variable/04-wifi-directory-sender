@@ -2,8 +2,40 @@ import json
 import os
 import hashlib
 import socket
+import ifcfg
 
 BUFFER_SIZE = 4096
+
+print("Getting IP Addresses...")
+ifcfgDict = ifcfg.interfaces()
+
+wifi = ifcfgDict["Wireless LAN adapter Wi-Fi"]["inet"]
+ethernet = ifcfgDict["Ethernet adapter Ethernet 3"]["inet"]
+print("Ethernet IP: " + ethernet)
+print("LAN IP: " + wifi)
+
+choice = ""
+while True:
+    if(choice.lower() == "e"):
+        choice = ethernet
+        break
+    elif(choice.lower() == "w"):
+        choice = wifi
+        break
+    else:
+        choice = input("Use Ethernet or LAN? (E/L): ")
+        
+while True:
+    try:
+        port = int(input("Enter port to use (4 digits): "))
+    except:
+        continue
+    if(port > 9999 or port < 1025):
+        continue
+    break
+
+
+
 s = socket.socket()
 
 totalFilesNb = 0
@@ -50,15 +82,13 @@ def sendDir(dirDict):
 
 # 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
 
-port = 5000
-
 print("Reading files and subdirectories...")
 completeFiles = readDir("./")
 
-print("Waiting for receiver...")
+print("Waiting for receiver on: " + choice + ":" + str(port) + "...")
 while True:
     try:
-        s.connect(("localhost", port))
+        s.connect((choice, port))
         break
     except:
         None

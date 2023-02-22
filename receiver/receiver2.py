@@ -36,7 +36,24 @@ def getDir(dirDict):
             
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 port = 5000
-s.bind(("localhost", port))
+
+while True:
+    senderIP = input("Enter IP Address of sender: ")
+    try:
+        s.bind((senderIP, port))
+    except:
+        continue
+    break
+
+while True:
+    try:
+        port = int(input("Enter port assigned by sender (4 digits): "))
+    except:
+        continue
+    if(port > 9999 or port < 1025):
+        continue
+    break
+
 s.listen(5)
 print("Listening...")
 client, addr = s.accept()
