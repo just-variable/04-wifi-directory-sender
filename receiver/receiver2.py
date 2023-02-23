@@ -73,14 +73,14 @@ def getDir(dirDict):
             
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
-print("[+] Getting IP Addresses...")
-ifcfgDict = ifcfg.interfaces()
+# print("[+] Getting IP Addresses...")
+# ifcfgDict = ifcfg.interfaces()
 
-for adapter in ifcfgDict.keys():
-    try:
-        print("[*] " + adapter + ": " + ifcfgDict[adapter]["inet"])
-    except:
-        continue
+# for adapter in ifcfgDict.keys():
+#     try:
+#         print("[*] " + adapter + ": " + ifcfgDict[adapter]["inet"])
+#     except:
+#         continue
 
 s.bind(("0.0.0.0", 5000))
 s.listen(5)
