@@ -3,7 +3,7 @@ import os
 import socket
 from rich.progress import Progress
 # 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
-BUFFER_SIZE = 2*1024*1024
+BUFFER_SIZE = 8*1024
 
 s = socket.socket()
 totalFilesSize = {'value': 0}
@@ -46,16 +46,12 @@ def sendDir(dirDict, progress):
             else:
                 nameWithSpaces = file
             nameWithSpaces = nameWithSpaces + " "*(36-len(nameWithSpaces))
-            if(dirDict[file][1]>8*1024*1024):
-                while True:
-                    data = filee.read(8*1024*1024)
-                    s.sendall(data)
-                    progress.update(task1, advance=8*1024*1024)
-                    if not data:
-                        break
-            else:
-                s.sendall(filee.read())
-                progress.update(task1, description=("[red]"+nameWithSpaces), advance=dirDict[file][1])
+            while True:
+                data = filee.read(8*1024*1024)
+                s.sendall(data)
+                progress.update(task1, advance=8*1024*1024)
+                if not data:
+                    break
             s.send(b"<END>")
             while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + file)):
                 print("[+] Waiting for receiver...")
