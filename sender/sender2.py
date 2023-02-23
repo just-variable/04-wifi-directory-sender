@@ -4,7 +4,7 @@ import math
 import socket
 from rich.progress import Progress
 # 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
-BUFFER_SIZE = 1024*1024
+BUFFER_SIZE = 2*1024*1024
 
 s = socket.socket()
 totalFilesSize = {'value': 0}
@@ -50,7 +50,7 @@ def sendDir(dirDict, progress):
             if(dirDict[file][1]>52428800):
                 while True:
                     data = filee.read(52428800)
-                    s.send(data)
+                    s.sendall(data)
                     progress.update(task1, advance=52428800)
                     if not data:
                         break
