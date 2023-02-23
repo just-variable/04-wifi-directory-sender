@@ -35,14 +35,12 @@ def getDir(dirDict):
                     data_buffer = client.recv(BUFFER_SIZE)
                     if(b"<END>" in data_buffer):
                         progress.update(task1, advance=len(data_buffer)-5)
-                        # fileBytes += data_buffer
                         client.send(("fileTransfer:" + item).encode())
                         fileBytes = fileBytes.replace(b"<END>", b"")
-                        file.write(data_buffer)
+                        file.write(fileBytes)
                         done = True
                     else:
                         progress.update(task1, advance=len(data_buffer))
-                        # fileBytes += data_buffer
                         file.write(data_buffer)
                     
                 file.close()
