@@ -8,7 +8,7 @@ except:
     print("[+] Installing modules...")
     os.system("pip install rich")
 
-BUFFER_SIZE = 2*1024*1024
+BUFFER_SIZE = 8*1024
 
 def getDir(dirDict):
     for item in dirDict.keys():
@@ -28,16 +28,14 @@ def getDir(dirDict):
                 task1 = progress.add_task("[cyan]" + nameWithSpaces, total=dirDict[item][1])
 
                 done = False
-                fileBytes = b""
-                counter = 0
                 file = open(dirDict[item][3] + item, "wb")
                 while not done:
                     data_buffer = client.recv(BUFFER_SIZE)
                     if(b"<END>" in data_buffer):
                         progress.update(task1, advance=len(data_buffer)-5)
                         client.send(("fileTransfer:" + item).encode())
-                        fileBytes = fileBytes.replace(b"<END>", b"")
-                        file.write(fileBytes)
+                        data_buffer = data_buffer.replace(b"<END>", b"")
+                        file.write(data_buffer)
                         done = True
                     else:
                         progress.update(task1, advance=len(data_buffer))
