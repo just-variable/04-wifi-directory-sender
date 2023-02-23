@@ -1,10 +1,9 @@
 import json
 import os
-import math
 import socket
 from rich.progress import Progress
 # 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
-BUFFER_SIZE = 5*1024*1024
+BUFFER_SIZE = 2*1024*1024
 
 s = socket.socket()
 totalFilesSize = {'value': 0}
