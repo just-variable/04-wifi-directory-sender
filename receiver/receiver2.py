@@ -45,7 +45,7 @@ def getDir(dirDict):
                         # fileBytes += data_buffer
                         file.write(data_buffer)
                     
-                    file.close()
+                file.close()
         else:
             getDir(dirDict[item])
             
