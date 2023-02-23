@@ -8,7 +8,7 @@ except:
     print("[+] Installing modules...")
     os.system("pip install rich")
 
-BUFFER_SIZE = 4*1024*1024
+BUFFER_SIZE = 5*1024*1024
 
 def getDir(dirDict):
     for item in dirDict.keys():
@@ -33,7 +33,6 @@ def getDir(dirDict):
                 
                 if(dirDict[item][1] > 52428800):
                     counter = 0
-                    file = open(dirDict[item][3] + item, "wb")
                     while not done:
                         data_buffer = client.recv(BUFFER_SIZE)
                         counter += BUFFER_SIZE/52428800
@@ -43,12 +42,14 @@ def getDir(dirDict):
                             client.send(("fileTransfer:" + item).encode())
                             done = True
                             fileBytes = fileBytes.replace(b"<END>", b"")
+                            file = open(dirDict[item][3] + item, "wb")
                             file.write(fileBytes)
                             file.close()
                         else:
                             progress.update(task1, advance=len(data_buffer))
                             fileBytes += data_buffer
                             if(counter > 0.95):
+                                file = open(dirDict[item][3] + item, "wb")
                                 file.write(fileBytes)
                                 counter = 0
                                 
@@ -73,14 +74,14 @@ def getDir(dirDict):
             
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
-# print("[+] Getting IP Addresses...")
-# ifcfgDict = ifcfg.interfaces()
+print("[+] Getting IP Addresses...")
+ifcfgDict = ifcfg.interfaces()
 
-# for adapter in ifcfgDict.keys():
-#     try:
-#         print("[*] " + adapter + ": " + ifcfgDict[adapter]["inet"])
-#     except:
-#         continue
+for adapter in ifcfgDict.keys():
+    try:
+        print("[*] " + adapter + ": " + ifcfgDict[adapter]["inet"])
+    except:
+        continue
 
 s.bind(("0.0.0.0", 5000))
 s.listen(5)
