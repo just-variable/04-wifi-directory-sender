@@ -27,44 +27,44 @@ def getDir(dirDict):
                 done = False
                 fileBytes = b""
                 
-                if(dirDict[item][1] > 52428800):
-                    counter = 0
-                    while not done:
-                        data_buffer = client.recv(BUFFER_SIZE)
-                        counter += BUFFER_SIZE/52428800
-                        if(b"<END>" in data_buffer):
-                            progress.update(task1, advance=len(data_buffer)-5)
-                            fileBytes += data_buffer
-                            client.send(("fileTransfer:" + item).encode())
-                            done = True
-                            fileBytes = fileBytes.replace(b"<END>", b"")
-                            file = open(dirDict[item][3] + item, "wb")
-                            file.write(fileBytes)
-                            file.close()
-                        else:
-                            progress.update(task1, advance=len(data_buffer))
-                            fileBytes += data_buffer
-                            if(counter > 0.95):
-                                file = open(dirDict[item][3] + item, "wb")
-                                file.write(fileBytes)
-                                counter = 0
-                                
-                                
-                else:
-                    while not done:
-                        data_buffer = client.recv(BUFFER_SIZE)
-                        if(b"<END>" in data_buffer):
-                            progress.update(task1, advance=len(data_buffer)-5)
-                            fileBytes += data_buffer
-                            client.send(("fileTransfer:" + item).encode())
-                            done = True
-                        else:
-                            progress.update(task1, advance=len(data_buffer))
-                            fileBytes += data_buffer
+                # if(dirDict[item][1] > 52428800):
+                counter = 0
+                while not done:
+                    data_buffer = client.recv(BUFFER_SIZE)
+                    counter += BUFFER_SIZE/8*1024*1024
+                    if(b"<END>" in data_buffer):
+                        progress.update(task1, advance=len(data_buffer)-5)
+                        fileBytes += data_buffer
+                        client.send(("fileTransfer:" + item).encode())
+                        done = True
                         fileBytes = fileBytes.replace(b"<END>", b"")
                         file = open(dirDict[item][3] + item, "wb")
                         file.write(fileBytes)
                         file.close()
+                    else:
+                        progress.update(task1, advance=len(data_buffer))
+                        fileBytes += data_buffer
+                        if(counter > 0.95):
+                            file = open(dirDict[item][3] + item, "wb")
+                            file.write(fileBytes)
+                            counter = 0
+                                
+                                
+                # else:
+                    # while not done:
+                    #     data_buffer = client.recv(BUFFER_SIZE)
+                    #     if(b"<END>" in data_buffer):
+                    #         progress.update(task1, advance=len(data_buffer)-5)
+                    #         fileBytes += data_buffer
+                    #         client.send(("fileTransfer:" + item).encode())
+                    #         done = True
+                    #     else:
+                    #         progress.update(task1, advance=len(data_buffer))
+                    #         fileBytes += data_buffer
+                    #     fileBytes = fileBytes.replace(b"<END>", b"")
+                    #     file = open(dirDict[item][3] + item, "wb")
+                    #     file.write(fileBytes)
+                    #     file.close()
         else:
             getDir(dirDict[item])
             

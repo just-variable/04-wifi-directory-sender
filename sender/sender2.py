@@ -47,11 +47,11 @@ def sendDir(dirDict, progress):
             else:
                 nameWithSpaces = file
             nameWithSpaces = nameWithSpaces + " "*(36-len(nameWithSpaces))
-            if(dirDict[file][1]>52428800):
+            if(dirDict[file][1]>8*1024*1024):
                 while True:
-                    data = filee.read(52428800)
+                    data = filee.read(8*1024*1024)
                     s.sendall(data)
-                    progress.update(task1, advance=52428800)
+                    progress.update(task1, advance=8*1024*1024)
                     if not data:
                         break
             else:
