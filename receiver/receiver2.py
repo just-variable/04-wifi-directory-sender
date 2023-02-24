@@ -1,16 +1,12 @@
 import socket
 import json
 import os
-<<<<<<< HEAD
 import ifcfg
 try:
     from rich.progress import Progress, DownloadColumn, SpinnerColumn, BarColumn, TransferSpeedColumn, TextColumn, TimeRemainingColumn, TimeElapsedColumn
 except:
     print("[+] Installing modules...")
     os.system("pip install rich")
-=======
-from rich.progress import Progress, DownloadColumn, SpinnerColumn, BarColumn, TransferSpeedColumn, TextColumn, TimeRemainingColumn, TimeElapsedColumn
->>>>>>> 4495713a3f74a0217d90bcfb3bc4f7d4d1163030
 
 BUFFER_SIZE = 2*1024*1024
 
