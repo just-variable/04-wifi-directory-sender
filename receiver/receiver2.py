@@ -8,7 +8,7 @@ BUFFER_SIZE = 2*1024*1024
 def fixName(str):
     if(len(str) > 33):
         str = str[:30] + "..." 
-    return str + " "*(36-len(str))  
+    return str + " "*(36-len(str))
 
 def getDir(dirDict):
     for itemName in dirDict.keys():
@@ -22,28 +22,18 @@ def getDir(dirDict):
                 task1 = progress.add_task("[cyan]" + fixName(itemName), total=dirDict[itemName][1])
                 file = open(dirDict[itemName][3] + itemName, "wb")
                 done = False
-                memSize = 0
-                temp = b""
+
                 while not done:
                     data_buffer = client.recv(BUFFER_SIZE)
                     if(b"<END>" in data_buffer):
                         progress.update(task1, advance=len(data_buffer)-5)
                         client.send(("fileTransfer:" + itemName).encode())
                         data_buffer = data_buffer.replace(b"<END>", b"")
-                        temp += data_buffer
-                        file.write(temp)
-                        # file.write(data_buffer)
+                        file.write(data_buffer)
                         done = True
                     else:
                         progress.update(task1, advance=len(data_buffer))
-                        if(memSize >= 50*1024*1024):
-                            file.write(temp)
-                            memSize = 0
-                            temp = b""
-                        else:
-                            temp += data_buffer
-                            memSize += BUFFER_SIZE
-                        
+                        file.write(data_buffer)
                 file.close()
         else:
             getDir(dirDict[itemName])
