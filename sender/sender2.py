@@ -38,7 +38,7 @@ def sendDir(dirDict, progress):
             filee = open(dirDict[itemName][3] + itemName, "rb")
 
             while True:
-                data = filee.read(BUFFER_SIZE)
+                data = filee.read(BUFFER_SIZE*10)
                 s.sendall(data)
                 progress.update(task1, description=("[red]"+fixName(itemName)), advance=BUFFER_SIZE)
                 if not data:
