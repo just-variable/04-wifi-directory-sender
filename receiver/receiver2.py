@@ -27,22 +27,22 @@ def getDir(dirDict):
                 temp = b""
                 while not done:
                     data_buffer = client.recv(BUFFER_SIZE)
-                    memSize += BUFFER_SIZE
                     if(b"<END>" in data_buffer):
                         progress.update(task1, advance=len(data_buffer)-5)
                         client.send(("fileTransfer:" + itemName).encode())
                         data_buffer = data_buffer.replace(b"<END>", b"")
-                        file.write(temp)
-                        file.write(data_buffer)
+                        file.write(temp + data_buffer)
+                        # file.write(data_buffer)
                         done = True
                     else:
                         progress.update(task1, advance=len(data_buffer))
-                        if(memSize >= 15*1024*1024):
+                        if(memSize >= 50*1024*1024):
                             file.write(temp)
                             memSize = 0
                             temp = b""
                         else:
                             temp += data_buffer
+                            memSize += BUFFER_SIZE
                         
                 file.close()
         else:
