@@ -1,60 +1,53 @@
 import socket
 import json
 import os
+<<<<<<< HEAD
 import ifcfg
 try:
     from rich.progress import Progress, DownloadColumn, SpinnerColumn, BarColumn, TransferSpeedColumn, TextColumn, TimeRemainingColumn, TimeElapsedColumn
 except:
     print("[+] Installing modules...")
     os.system("pip install rich")
+=======
+from rich.progress import Progress, DownloadColumn, SpinnerColumn, BarColumn, TransferSpeedColumn, TextColumn, TimeRemainingColumn, TimeElapsedColumn
+>>>>>>> 4495713a3f74a0217d90bcfb3bc4f7d4d1163030
 
-BUFFER_SIZE = 8*1024
+BUFFER_SIZE = 2*1024*1024
+
+def fixName(str):
+    if(len(str) > 33):
+        str = str[:30] + "..."
+    return str + " "*(36-len(str))
 
 def getDir(dirDict):
-    for item in dirDict.keys():
-        if(isinstance(dirDict[item], list)):
+    for itemName in dirDict.keys():
+        if(isinstance(dirDict[itemName], list)):
             try:
-                os.makedirs(dirDict[item][3])
+                os.makedirs(dirDict[itemName][3])
             except:
                 None
 
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), TimeElapsedColumn(), BarColumn(), TimeRemainingColumn(),  TransferSpeedColumn(), DownloadColumn(True)) as progress:
-                nameWithSpaces = ""
-                if(len(item) > 33):
-                    nameWithSpaces = item[:30] + "..."
-                else:
-                    nameWithSpaces = item
-                nameWithSpaces = nameWithSpaces + " "*(36-len(nameWithSpaces))
-                task1 = progress.add_task("[cyan]" + nameWithSpaces, total=dirDict[item][1])
-
+                task1 = progress.add_task("[cyan]" + fixName(itemName), total=dirDict[itemName][1])
+                file = open(dirDict[itemName][3] + itemName, "wb")
                 done = False
-                file = open(dirDict[item][3] + item, "wb")
+
                 while not done:
                     data_buffer = client.recv(BUFFER_SIZE)
                     if(b"<END>" in data_buffer):
                         progress.update(task1, advance=len(data_buffer)-5)
-                        client.send(("fileTransfer:" + item).encode())
+                        client.send(("fileTransfer:" + itemName).encode())
                         data_buffer = data_buffer.replace(b"<END>", b"")
                         file.write(data_buffer)
                         done = True
                     else:
                         progress.update(task1, advance=len(data_buffer))
                         file.write(data_buffer)
-                    
                 file.close()
         else:
-            getDir(dirDict[item])
+            getDir(dirDict[itemName])
             
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-
-# print("[+] Getting IP Addresses...")
-# ifcfgDict = ifcfg.interfaces()
-
-# for adapter in ifcfgDict.keys():
-#     try:
-#         print("[*] " + adapter + ": " + ifcfgDict[adapter]["inet"])
-#     except:
-#         continue
 
 s.bind(("0.0.0.0", 5000))
 s.listen(5)
