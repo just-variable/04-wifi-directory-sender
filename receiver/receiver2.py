@@ -27,7 +27,6 @@ def getDir(dirDict):
                 task1 = progress.add_task("[cyan]" + fixName(itemName), total=dirDict[itemName][1])
                 file = open(dirDict[itemName][3] + itemName, "wb")
                 done = False
-
                 memSize = 0
                 temp = b""
                 while not done:
@@ -36,7 +35,8 @@ def getDir(dirDict):
                         progress.update(task1, advance=len(data_buffer)-5)
                         client.send(("fileTransfer:" + itemName).encode())
                         data_buffer = data_buffer.replace(b"<END>", b"")
-                        file.write(temp + data_buffer)
+                        temp += data_buffer
+                        file.write(temp)
                         # file.write(data_buffer)
                         done = True
                     else:
