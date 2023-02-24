@@ -16,7 +16,7 @@ BUFFER_SIZE = 2*1024*1024
 
 def fixName(str):
     if(len(str) > 33):
-        str = str[:30] + "..."
+        str = str[:30] + "..." 
     return str + " "*(36-len(str))
 
 def getDir(dirDict):
