@@ -2,61 +2,53 @@ import json
 import os
 import socket
 from rich.progress import Progress
-# 0 name, 1 size, 2 digest, 3 relPath, 4 dirlist
-BUFFER_SIZE = 8*1024
+
+BUFFER_SIZE = 2*1024*1024
 
 s = socket.socket()
 totalFilesSize = {'value': 0}
+
+def fixName(str):
+    if(len(str) > 33):
+        str = str[:30] + "..."
+    return str + " "*(36-len(str))
+
 def readDir(relPath):
     dirDict = {}
     filesList = os.scandir(relPath)
-    for fileObj in filesList:
-        file = fileObj.name
-        if (file == os.path.basename(__file__) or file == "functions.py" or file == "sender2.py"):
+
+    for itemObj in filesList:
+        itemName = itemObj.name
+        if (itemName == os.path.basename(__file__) or itemName == "functions.py" or itemName == "sender2.py"):
             continue
-        if (fileObj.is_file()):
-            fileDict = 0
-            # sha256_hash = hashlib.sha256()
-            # with open(str(relPath + file),"rb") as f:
-            #     for byte_block in iter(lambda: f.read(4096),b""):
-            #         sha256_hash.update(byte_block)
-            # fileDigest = sha256_hash.hexdigest()
+        if (itemObj.is_file()):
             fileDigest = ""
-        else:
-            fileDict = readDir(relPath + file + "/")
-            fileDigest = ""
-        size = os.stat(relPath + file).st_size
-        totalFilesSize['value'] += size
-        thisFile = [file, size, fileDigest, relPath, fileDict]
-        
-        if (fileObj.is_file()):
+            size = os.stat(relPath + itemName).st_size
+            totalFilesSize['value'] += size
+            thisFile = [itemName, size, fileDigest, relPath]
             dirDict[thisFile[0]] = thisFile
         else:
-            dirDict[thisFile[0]] = fileDict
-
+            dirDict[itemName] = readDir(relPath + itemName + "/")
     return dirDict
 
 def sendDir(dirDict, progress):
-    for file in dirDict.keys():
-        if (isinstance(dirDict[file], list)):
-            filee = open(dirDict[file][3] + file, "rb")
-            nameWithSpaces = ""
-            if(len(file) > 33):
-                nameWithSpaces = file[:30] + "..."
-            else:
-                nameWithSpaces = file
-            nameWithSpaces = nameWithSpaces + " "*(36-len(nameWithSpaces))
+
+    for itemName in dirDict.keys():
+        if (isinstance(dirDict[itemName], list)):
+            filee = open(dirDict[itemName][3] + itemName, "rb")
+
             while True:
-                data = filee.read(8*1024*1024)
+                data = filee.read(BUFFER_SIZE)
                 s.sendall(data)
-                progress.update(task1, advance=8*1024*1024)
+                progress.update(task1, description=("[red]"+fixName(itemName)), advance=BUFFER_SIZE)
                 if not data:
                     break
+
             s.send(b"<END>")
-            while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + file)):
+            while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + itemName)):
                 print("[+] Waiting for receiver...")
         else:
-            sendDir(dirDict[file], progress)
+            sendDir(dirDict[itemName], progress)
 
 print("[+] Reading files and subdirectories...")
 completeFiles = readDir("./")
