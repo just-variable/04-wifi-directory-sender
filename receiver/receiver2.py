@@ -37,6 +37,7 @@ def getDir(dirDict):
                         progress.update(task1, advance=len(data_buffer)-5)
                         client.send(("fileTransfer:" + itemName).encode())
                         data_buffer = data_buffer.replace(b"<END>", b"")
+                        file.write(temp)
                         file.write(data_buffer)
                         done = True
                     else:
