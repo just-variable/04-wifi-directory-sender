@@ -44,6 +44,7 @@ def getDir(dirDict):
                         if(memSize >= 15*1024*1024):
                             file.write(temp)
                             memSize = 0
+                            temp = b""
                         else:
                             temp += data_buffer
                         
