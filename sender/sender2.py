@@ -1,7 +1,7 @@
 import json
 import os
 import socket
-from rich.progress import Progress, SpinnerColumn, MofNCompleteColumn, DownloadColumn, TransferSpeedColumn
+from rich.progress import Progress, SpinnerColumn, DownloadColumn, TransferSpeedColumn
 import hashlib
 
 BUFFER_SIZE = 64*1024
@@ -23,16 +23,13 @@ def readDir(relPath):
         if (itemName == os.path.basename(__file__) or itemName == "functions.py" or itemName == "sender2.py"):
             continue
         if (itemObj.is_file()):
-            fileDigest = ""
             size = os.stat(relPath + itemName).st_size
             totalFilesSize['value'] += size
-            thisFile = [itemName, size, fileDigest, relPath]
+            thisFile = [itemName, size, "", relPath]
             dirDict[thisFile[0]] = thisFile
         else:
             dirDict[itemName] = readDir(relPath + itemName + "/")
     return dirDict
-
-
 
 def sendDir(dirDict, progress, task1):
     for itemName in dirDict.keys():
@@ -47,7 +44,7 @@ def sendDir(dirDict, progress, task1):
                 progress.update(task1, description=("[red]"+fixName(itemName)), advance=len(data))
                 if not data:
                     break
-            print("{0}".format(sha256.hexdigest()))
+            # print("{0}".format(sha256.hexdigest()))
 
             s.send(b"<END>")
             s.send(b"<HBEGIN>" + bytes("{0}".format(sha256.hexdigest()), "utf-8") + b"<HEND>")
@@ -56,7 +53,6 @@ def sendDir(dirDict, progress, task1):
                 print("[+] Waiting for receiver...")
         else:
             sendDir(dirDict[itemName], progress, task1)
-
 
 def main():
 
