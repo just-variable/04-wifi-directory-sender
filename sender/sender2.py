@@ -1,9 +1,10 @@
 import json
 import os
 import socket
-from rich.progress import Progress
+from rich.progress import Progress, SpinnerColumn, MofNCompleteColumn, DownloadColumn, TransferSpeedColumn
+import hashlib
 
-BUFFER_SIZE = 2*1024*1024
+BUFFER_SIZE = 64*1024
 
 s = socket.socket()
 totalFilesSize = {'value': 0}
@@ -31,48 +32,58 @@ def readDir(relPath):
             dirDict[itemName] = readDir(relPath + itemName + "/")
     return dirDict
 
-def sendDir(dirDict, progress):
 
+
+def sendDir(dirDict, progress, task1):
     for itemName in dirDict.keys():
         if (isinstance(dirDict[itemName], list)):
             filee = open(dirDict[itemName][3] + itemName, "rb")
+            sha256 = hashlib.sha256()
 
             while True:
                 data = filee.read(BUFFER_SIZE*10)
                 s.sendall(data)
-                progress.update(task1, description=("[red]"+fixName(itemName)), advance=BUFFER_SIZE)
+                sha256.update(data)
+                progress.update(task1, description=("[red]"+fixName(itemName)), advance=len(data))
                 if not data:
                     break
+            print("{0}".format(sha256.hexdigest()))
 
             s.send(b"<END>")
+            s.send(b"<HBEGIN>" + bytes("{0}".format(sha256.hexdigest()), "utf-8") + b"<HEND>")
+
             while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + itemName)):
                 print("[+] Waiting for receiver...")
         else:
-            sendDir(dirDict[itemName], progress)
+            sendDir(dirDict[itemName], progress, task1)
 
-print("[+] Reading files and subdirectories...")
-completeFiles = readDir("./")
 
-receiverIP = input("[-] Enter IP of receiver or leave blank for localhost: ")
-if (receiverIP == ""):
-    receiverIP = "localhost"
-s.connect((receiverIP, 5000))
-print("[+] Connected.")
+def main():
 
-completeFilesBytes = json.dumps(completeFiles)
-completeFiles = json.loads(completeFilesBytes)
+    print("[+] Reading files and subdirectories.")
+    completeFiles = readDir("./")
+    print("[+] Done: Reading files and subdirectories.")
 
-s.send(completeFilesBytes.encode())
-s.send(b"<END>")
+    receiverIP = input("[-] Enter IP of receiver or leave blank for localhost: ")
+    if (receiverIP == ""):
+        receiverIP = "localhost"
+    s.connect((receiverIP, 5000))
+    print("[+] Connected.")
 
-recv = s.recv(BUFFER_SIZE).decode()
-if recv == "dirDictTransfer":
-    print("[+] Directory data received by peer. Starting to send...\n")
-    with Progress() as progress:
-        task1 = progress.add_task("[red]", total=totalFilesSize['value'])
-        sendDir(completeFiles, progress)
+    completeFilesBytes = json.dumps(completeFiles)
+    completeFiles = json.loads(completeFilesBytes)
+
+    s.send(completeFilesBytes.encode())
+    s.send(b"<END>")
+
+    recv = s.recv(BUFFER_SIZE).decode()
+    if recv == "dirDictTransfer":
+        print("[+] Directory data received by peer. Starting to send...\n")
+        with Progress(SpinnerColumn(), *Progress.get_default_columns(), TransferSpeedColumn(), DownloadColumn()) as progress:
+            task1 = progress.add_task("[red]", total=totalFilesSize['value'])
+            sendDir(completeFiles, progress, task1)
     
-        
+main()
 print("\n[+] Done, closing connection...")
 s.close()
 print("[+] Connection closed.")

@@ -2,8 +2,11 @@ import socket
 import json
 import os
 from rich.progress import Progress, DownloadColumn, SpinnerColumn, BarColumn, TransferSpeedColumn, TextColumn, TimeRemainingColumn, TimeElapsedColumn
+import re
 
-BUFFER_SIZE = 2*1024*1024
+BUFFER_SIZE = 64*1024
+
+
 
 def fixName(str):
     if(len(str) > 33):
@@ -25,11 +28,29 @@ def getDir(dirDict):
 
                 while not done:
                     data_buffer = client.recv(BUFFER_SIZE)
-                    if(b"<END>" in data_buffer):
+                    if all([x in data_buffer for x in [b"<END>", b"<HBEGIN>", b"<HEND>"]]):
                         progress.update(task1, advance=len(data_buffer)-5)
-                        client.send(("fileTransfer:" + itemName).encode())
-                        data_buffer = data_buffer.replace(b"<END>", b"")
+                        sha256 = re.search(b'<HBEGIN>(.*)<HEND>', data_buffer).group(1)
+                        print(b"got all tags: " + sha256)
+                        data_buffer = data_buffer.replace(b"<END><HBEGIN>"+sha256+b"<HEND>", b"")
                         file.write(data_buffer)
+
+                        dirDict[itemName][2] = str(sha256)
+                        client.send(("fileTransfer:" + itemName).encode())
+                        done = True
+
+                    elif(b"<END>" in data_buffer and not all([x in data_buffer for x in [b"<HBEGIN>", b"<HEND>"]])):
+                        
+                        progress.update(task1, advance=len(data_buffer)-5)
+                        data = data_buffer
+                        data += client.recv(BUFFER_SIZE)
+                        sha256 = re.search(b'<HBEGIN>(.*)<HEND>', data).group(1)
+                        print(b"got tags seperately: " + sha256)
+                        data = data.replace(b"<END><HBEGIN>"+sha256+b"<HEND>", b"")
+                        file.write(data)
+                        
+                        dirDict[itemName][2] = str(sha256)
+                        client.send(("fileTransfer:" + itemName).encode())
                         done = True
                     else:
                         progress.update(task1, advance=len(data_buffer))
@@ -61,7 +82,9 @@ client.send(b"dirDictTransfer")
 dirDict = json.loads(dirDictString)
 
 getDir(dirDict)
-        
+
+print(str(dirDict))
+
 print("\n[+] Done, closing connection...")
 client.close()
 input("[-] press enter...")
