@@ -38,10 +38,10 @@ def sendDir(dirDict, progress, task):
         if (isinstance(dirDict[itemName], list)):
             while (True):
                 allmsg += s.recv(BUFFER_SIZE).decode()
-                if(("fileSkip:" + itemName) in allmsg):
+                if(("fileSkip:!"+dirDict[itemName][3]+itemName+"!") in allmsg):
                     skip = 1
                     break
-                if(("fileGet:" + itemName) in allmsg):
+                if(("fileGet:!"+dirDict[itemName][3]+itemName+"!") in allmsg):
                     skip = 0
                     break
             if(skip == 1):
