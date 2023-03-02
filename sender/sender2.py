@@ -31,9 +31,22 @@ def readDir(relPath):
             dirDict[itemName] = readDir(relPath + itemName + "/")
     return dirDict
 
-def sendDir(dirDict, progress, task1):
+def sendDir(dirDict, progress, task):
+    allmsg= ""
     for itemName in dirDict.keys():
+        skip=0
         if (isinstance(dirDict[itemName], list)):
+            while (True):
+                allmsg += s.recv(BUFFER_SIZE).decode()
+                if(("fileSkip:" + itemName) in allmsg):
+                    skip = 1
+                    break
+                if(("fileGet:" + itemName) in allmsg):
+                    skip = 0
+                    break
+            if(skip == 1):
+                progress.update(task, description=("[green]"+fixName("Skipped: "+itemName)), advance=dirDict[itemName][1])
+                continue
             filee = open(dirDict[itemName][3] + itemName, "rb")
             sha256 = hashlib.sha256()
 
@@ -41,10 +54,9 @@ def sendDir(dirDict, progress, task1):
                 data = filee.read(BUFFER_SIZE*10)
                 s.sendall(data)
                 sha256.update(data)
-                progress.update(task1, description=("[red]"+fixName(itemName)), advance=len(data))
+                progress.update(task, description=("[red]"+fixName(itemName)), advance=len(data))
                 if not data:
                     break
-            # print("{0}".format(sha256.hexdigest()))
 
             s.send(b"<END>")
             s.send(b"<HBEGIN>" + bytes("{0}".format(sha256.hexdigest()), "utf-8") + b"<HEND>")
@@ -52,7 +64,7 @@ def sendDir(dirDict, progress, task1):
             while (s.recv(BUFFER_SIZE).decode() != ("fileTransfer:" + itemName)):
                 print("[+] Waiting for receiver...")
         else:
-            sendDir(dirDict[itemName], progress, task1)
+            sendDir(dirDict[itemName], progress, task)
 
 def main():
 
@@ -76,8 +88,8 @@ def main():
     if recv == "dirDictTransfer":
         print("[+] Directory data received by peer. Starting to send...\n")
         with Progress(SpinnerColumn(), *Progress.get_default_columns(), TransferSpeedColumn(), DownloadColumn()) as progress:
-            task1 = progress.add_task("[red]", total=totalFilesSize['value'])
-            sendDir(completeFiles, progress, task1)
+            task = progress.add_task("[red]", total=totalFilesSize['value'])
+            sendDir(completeFiles, progress, task)
     
 main()
 print("\n[+] Done, closing connection...")

@@ -24,6 +24,12 @@ def getDir(dirDict, client):
 
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), TimeElapsedColumn(), BarColumn(), TimeRemainingColumn(),  TransferSpeedColumn(), DownloadColumn(True)) as progress:
                 task1 = progress.add_task("[cyan]" + fixName(itemName), total=dirDict[itemName][1])
+                if(os.path.exists(dirDict[itemName][3] + itemName)):
+                    if(os.stat(dirDict[itemName][3] + itemName).st_size == dirDict[itemName][1]):
+                        client.send(("fileSkip:" + itemName).encode())
+                        progress.update(task1, description=("[green]"+fixName("Skipped: "+itemName)), advance=dirDict[itemName][1])
+                        continue
+                client.send(("fileGet:" + itemName).encode())
                 file = open(dirDict[itemName][3] + itemName, "wb")
                 done = False
                 sha256Actual = hashlib.sha256()
